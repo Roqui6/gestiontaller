@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GestiónTaller</title>
+<meta name="theme-color" content="#0f1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GestiónTaller">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiR2VzdGnDs25UYWxsZXIiLCJzaG9ydF9uYW1lIjoiVGFsbGVyIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwZjExMTciLCJ0aGVtZV9jb2xvciI6IiMzYjgyZjYiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJyUzRSUzQ3JlY3Qgd2lkdGg9JzEwMCcgaGVpZ2h0PScxMDAnIHJ4PScyMCcgZmlsbD0nJTIzM2I4MmY2JyUyRiUzRSUzQ3RleHQgeT0nLjllbScgZm9udC1zaXplPSc4MCcgdGV4dC1hbmNob3I9J21pZGRsZScgeD0nNTAlJyUzRSUzQ3RzcGFuJTNFJUYwJTlGJTkzJUE3JTNDJTJGdHNwYW4lM0UlM0MlMkZ0ZXh0JTNFJTNDJTJGc3ZnJTNFIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3N2Zyt4bWwifV19">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+:root {
+  --bg:#0f1117;--surface:#181c27;--surface2:#1e2333;--surface3:#252b3d;
+  --border:#2a3050;--border2:#353d5a;
+  --accent:#3b82f6;--accent2:#1d4ed8;--accent-glow:rgba(59,130,246,0.15);
+  --green:#22c55e;--green-bg:rgba(34,197,94,0.1);
+  --yellow:#f59e0b;--yellow-bg:rgba(245,158,11,0.1);
+  --red:#ef4444;--red-bg:rgba(239,68,68,0.1);
+  --orange:#f97316;--orange-bg:rgba(249,115,22,0.1);
+  --purple:#a855f7;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --radius:10px;--radius-sm:6px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+
+/* HOME */
+#home-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 20% 30%,rgba(59,130,246,0.07) 0%,transparent 55%),
+             radial-gradient(ellipse at 80% 70%,rgba(168,85,247,0.05) 0%,transparent 50%),var(--bg);padding:40px 20px;}
+.home-logo{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.home-logo .icon{width:52px;height:52px;background:var(--accent);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 8px 24px rgba(59,130,246,0.35);}
+.home-logo .brand{font-size:28px;font-weight:700;letter-spacing:-1px;}
+.home-logo .brand span{color:var(--accent);}
+.home-sub{color:var(--text3);font-size:14px;margin-bottom:48px;}
+.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:540px;}
+.home-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 24px;cursor:pointer;
+  transition:all 0.2s;display:flex;flex-direction:column;align-items:flex-start;gap:10px;position:relative;overflow:hidden;}
+.home-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--card-accent,var(--accent));}
+.home-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.4);border-color:var(--card-accent,var(--accent));}
+.home-card:hover .card-arrow{opacity:1;transform:translateX(0);}
+.home-card .card-icon{font-size:28px;}.home-card .card-title{font-size:17px;font-weight:700;}
+.home-card .card-desc{font-size:12px;color:var(--text3);line-height:1.5;}
+.home-card .card-arrow{position:absolute;bottom:20px;right:20px;color:var(--text3);font-size:18px;opacity:0;transform:translateX(-6px);transition:all 0.2s;}
+.card-gestor{--card-accent:#3b82f6;}.card-taller{--card-accent:#22c55e;}
+.card-rutas{--card-accent:#f59e0b;}.card-general{--card-accent:#a855f7;}
+.free-badge{position:absolute;top:14px;right:14px;background:rgba(168,85,247,0.15);color:#d8b4fe;border:1px solid rgba(168,85,247,0.3);border-radius:20px;padding:2px 8px;font-size:10px;font-weight:600;}
+
+/* LOADING */
+#loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--text3);font-size:13px;}
+
+/* APP */
+#app{display:none;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-left{display:flex;align-items:center;gap:14px;}
+.topbar-logo{font-size:16px;font-weight:700;letter-spacing:-0.3px;cursor:pointer;}
+.topbar-logo span{color:var(--accent);}
+.mod-pill{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border2);color:var(--text2);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.main{flex:1;padding:24px;max-width:1280px;margin:0 auto;width:100%;}
+.section{display:none;}.section.active{display:block;}
+
+/* OVERLAYS */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px;}
+.overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;width:100%;max-width:420px;box-shadow:0 30px 80px rgba(0,0,0,0.6);}
+.modal-lg{max-width:620px;max-height:90vh;overflow-y:auto;}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:3px;}
+.modal-sub{color:var(--text3);font-size:12px;margin-bottom:20px;}
+.mfooter{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+
+/* FORM */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fg .full{grid-column:1/-1;}.fg .field{margin:0;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.4px;}
+.field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border-color 0.15s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+.field select option{background:var(--surface2);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;transition:all 0.15s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:var(--accent2);transform:translateY(-1px);}
+.btn-secondary{background:var(--surface3);color:var(--text);border:1px solid var(--border);}.btn-secondary:hover{background:var(--border);}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
+.btn-green{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.btn-full{width:100%;justify-content:center;padding:11px;}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none!important;}
+
+/* TABLE */
+.twrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead{background:var(--surface2);}
+th{padding:9px 13px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:10px 13px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+.bg-blue{background:rgba(59,130,246,0.15);color:#93c5fd;}
+.bg-green{background:var(--green-bg);color:#86efac;}
+.bg-yellow{background:var(--yellow-bg);color:#fcd34d;}
+.bg-red{background:var(--red-bg);color:#fca5a5;}
+.bg-purple{background:rgba(168,85,247,0.15);color:#d8b4fe;}
+.bg-orange{background:var(--orange-bg);color:#fdba74;}
+.bg-gray{background:var(--surface3);color:var(--text3);}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+.stat-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.4px;color:var(--text3);margin-bottom:6px;}
+.stat-value{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:3px;}
+.sb{border-top:2px solid var(--accent)}.sg{border-top:2px solid var(--green)}
+.sy{border-top:2px solid var(--yellow)}.sp{border-top:2px solid var(--purple)}
+
+/* ALERTS */
+.alert{padding:11px 15px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:14px;display:flex;align-items:flex-start;gap:9px;}
+.alert-w{background:var(--yellow-bg);border:1px solid rgba(245,158,11,0.3);color:#fcd34d;}
+.alert-s{background:var(--green-bg);border:1px solid rgba(34,197,94,0.3);color:#86efac;}
+.alert-i{background:var(--accent-glow);border:1px solid rgba(59,130,246,0.3);color:#93c5fd;}
+.alert-d{background:var(--red-bg);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;}
+
+/* MISC */
+.section-hr{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px;}
+.sh h1{font-size:21px;font-weight:700;letter-spacing:-0.4px;}
+.sh p{color:var(--text2);font-size:13px;margin-top:3px;}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+.fi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 11px;color:var(--text);font-family:inherit;font-size:13px;outline:none;}
+.fi:focus{border-color:var(--accent);}
+.inner-tabs{display:flex;gap:3px;margin-bottom:18px;background:var(--surface2);padding:4px;border-radius:var(--radius-sm);width:fit-content;}
+.it{padding:6px 15px;border-radius:5px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);border:none;background:none;font-family:inherit;transition:all 0.12s;}
+.it.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.3);}
+.ins{display:none;}.ins.active{display:block;}
+.mono{font-family:'JetBrains Mono',monospace;font-size:12px;}
+.pending-dot{width:7px;height:7px;background:var(--red);border-radius:50%;display:inline-block;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.itv-warn td{background:rgba(245,158,11,0.04)!important;}
+.itv-danger td{background:rgba(239,68,68,0.04)!important;}
+
+/* RUTA CARDS */
+.ruta-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:border-color 0.15s;}
+.ruta-card:hover{border-color:var(--border2);}
+.ruta-card.incompleta{border-left:3px solid var(--yellow);}
+.ruta-card.averia{border-left:3px solid var(--red);}
+.ruta-card.extra{border-left:3px solid var(--purple);}
+.ruta-card.ok{border-left:3px solid var(--green);}
+.rc-head{display:flex;align-items:center;gap:12px;padding:13px 16px;flex-wrap:wrap;}
+.rc-mat{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;min-width:80px;}
+.rc-info{flex:1;min-width:180px;}
+.rc-title{font-size:13px;font-weight:600;}
+.rc-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.rc-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+
+/* EXPORT */
+.export-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:14px;}
+.export-box h4{font-size:14px;font-weight:600;margin-bottom:5px;}
+.export-box p{color:var(--text2);font-size:13px;margin-bottom:14px;line-height:1.5;}
+.export-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+.rbar-wrap{display:flex;height:7px;border-radius:4px;overflow:hidden;width:100px;background:var(--surface3);}
+.rbar{height:100%;}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--surface);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+@media(max-width:640px){
+  .home-grid{grid-template-columns:1fr;}
+  .topbar{padding:0 14px;}
+  .main{padding:14px;}
+  .fg{grid-template-columns:1fr;}
+  .fg .full{grid-column:1;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .rc-head{gap:8px;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="spinner"></div>
+  <div class="loading-text">Conectando...</div>
+</div>
+
+<!-- HOME -->
+<div id="home-screen" style="display:none">
+  <div class="home-logo">
+    <div class="icon">🔧</div>
+    <div class="brand">Gestión<span>Taller</span></div>
+  </div>
+  <div class="home-sub">Sistema de gestión de flota y taller</div>
+  <div class="home-grid">
+    <div class="home-card card-gestor" onclick="goModule('gestor')">
+      <div class="card-icon">⚙️</div><div class="card-title">Gestor</div>
+      <div class="card-desc">Usuarios, flota, rutas fijas y alertas</div>
+      <div class="card-arrow">→</div>
+    </div>
+    <div class="home-card card-taller" onclick="goModule('taller')">
+      <div class="card-icon">🔧</div><div class="card-title">Taller</div>
+      <div class="card-desc">Materiales, horas, externos e ITVs</div>
+      <div class="card-arrow">→</div>
+    </div>
+    <div class="home-card card-rutas" onclick="goModule('rutas')">
+      <div class="card-icon">🚛</div><div class="card-title">Diario de Rutas</div>
+      <div class="card-desc">Planificación y seguimiento diario</div>
+      <div class="card-arrow">→</div>
+    </div>
+    <div class="home-card card-general" onclick="goModule('general')">
+      <div class="free-badge">Acceso libre</div>
+      <div class="card-icon">📊</div><div class="card-title">General</div>
+      <div class="card-desc">Repartos calculados y exportación Excel</div>
+      <div class="card-arrow">→</div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="overlay" id="ov-login">
+  <div class="modal">
+    <h3 id="login-title">Acceso</h3>
+    <div class="modal-sub">Introduce tus credenciales</div>
+    <div class="field"><label>Usuario</label><input id="lu" type="text" autocomplete="username" /></div>
+    <div class="field"><label>Contraseña</label><input id="lp" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" /></div>
+    <div id="lerr" style="color:var(--red);font-size:12px;margin-bottom:10px;display:none">Usuario o contraseña incorrectos.</div>
+    <div class="mfooter">
+      <button class="btn btn-secondary" onclick="closeOv('ov-login')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-login-ok" onclick="doLogin()">Entrar →</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo" onclick="goHome()">Gestión<span>Taller</span></div>
+      <div class="mod-pill" id="mod-pill">—</div>
+    </div>
+    <div class="topbar-right">
+      <div id="top-user" style="display:none;align-items:center;gap:8px;">
+        <div class="user-avatar" id="top-av">?</div>
+        <div style="line-height:1.3">
+          <div style="font-size:13px;font-weight:500" id="top-name">—</div>
+          <div style="font-size:11px;color:var(--text3)" id="top-role">—</div>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="goHome()">← Inicio</button>
+      <button class="btn btn-secondary btn-sm" id="btn-logout" style="display:none" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- GESTOR -->
+    <div class="section" id="s-gestor">
+      <div class="section-hr">
+        <div class="sh"><h1>⚙️ Gestor</h1><p>Usuarios, flota, rutas fijas y alertas</p></div>
+      </div>
+      <div class="inner-tabs">
+        <button class="it active" onclick="showIns('gestor','usuarios',this)">Usuarios</button>
+        <button class="it" onclick="showIns('gestor','flota',this)">Flota</button>
+        <button class="it" onclick="showIns('gestor','obras',this)">Obras</button>
+        <button class="it" onclick="showIns('gestor','rutasfijas',this)">Rutas fijas</button>
+        <button class="it" onclick="showIns('gestor','alertas',this)">Alertas <span id="abadge" style="background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:3px">0</span></button>
+      </div>
+      <div class="ins active" id="g-usuarios">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn btn-primary" onclick="openOv('ov-usuario')">+ Nuevo usuario</button></div>
+        <div id="users-list"></div>
+      </div>
+      <div class="ins" id="g-flota">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn btn-primary" onclick="openOv('ov-vehiculo')">+ Añadir vehículo</button></div>
+        <div class="twrap"><table><thead><tr><th>Matrícula</th><th>Marca/Modelo</th><th>Obra</th><th>Próx. ITV</th><th>Próx. Mant.</th><th></th></tr></thead><tbody id="flota-tbody"></tbody></table></div>
+      </div>
+      <div class="ins" id="g-obras">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn btn-primary" onclick="openOv('ov-obra')">+ Nueva obra</button></div>
+        <div id="obras-list"></div>
+      </div>
+      <div class="ins" id="g-rutasfijas">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn btn-primary" onclick="openOv('ov-rutafija')">+ Nueva ruta fija</button></div>
+        <div class="twrap"><table><thead><tr><th>Matrícula</th><th>Nombre ruta</th><th>Obra</th><th>KM</th><th>Días</th><th>Activa</th><th></th></tr></thead><tbody id="rutasfijas-tbody"></tbody></table></div>
+      </div>
+      <div class="ins" id="g-alertas"><div id="alertas-list"></div></div>
+    </div>
+
+    <!-- TALLER -->
+    <div class="section" id="s-taller">
+      <div class="section-hr">
+        <div class="sh"><h1>🔧 Taller</h1><p>Materiales, horas, reparaciones e ITVs</p></div>
+        <button class="btn btn-primary" onclick="openTallerModal()">+ Nuevo registro</button>
+      </div>
+      <div class="stats-row" id="taller-stats"></div>
+      <div class="filters">
+        <input class="fi" id="tf-mes" type="month" onchange="renderTaller()" style="width:150px" />
+        <select class="fi" id="tf-tipo" onchange="renderTaller()" style="width:170px">
+          <option value="">Todos los tipos</option>
+          <option>Material</option><option>Horas reparación</option><option>Reparación externa</option><option>ITV</option>
+        </select>
+        <select class="fi" id="tf-obra" onchange="renderTaller()" style="width:170px"><option value="">Todas las obras</option></select>
+      </div>
+      <div class="twrap"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Matrícula</th><th>Descripción</th><th>Mecánico</th><th>Horas</th><th>Coste</th><th>Obra</th><th></th></tr></thead><tbody id="taller-tbody"></tbody></table></div>
+    </div>
+
+    <!-- RUTAS -->
+    <div class="section" id="s-rutas">
+      <div class="section-hr">
+        <div class="sh"><h1>🚛 Diario de Rutas</h1><p>Planificación y seguimiento diario</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="cargarRutasFijas()">📋 Cargar rutas fijas</button>
+          <button class="btn btn-primary" onclick="openRutaModal()">+ Añadir ruta / extra</button>
+        </div>
+      </div>
+      <div id="pend-banner"></div>
+      <div class="filters">
+        <input class="fi" id="rf-fecha" type="date" onchange="renderRutas()" style="width:150px" />
+        <select class="fi" id="rf-obra" onchange="renderRutas()" style="width:170px"><option value="">Todas las obras</option></select>
+        <select class="fi" id="rf-mat" onchange="renderRutas()" style="width:150px"><option value="">Todas las matrículas</option></select>
+      </div>
+      <div id="rutas-cards"></div>
+    </div>
+
+    <!-- GENERAL -->
+    <div class="section" id="s-general">
+      <div class="sh" style="margin-bottom:20px"><h1>📊 General</h1><p>Repartos calculados automáticamente · Acceso libre · Excel directo</p></div>
+      <div class="alert alert-i">ℹ️ Los porcentajes se calculan solos a partir del Diario de Rutas. Descarga en Excel (.xlsx) listo para el ERP.</div>
+      <div class="export-box">
+        <h4>🔢 Reparto % — Gasolina / Leasing / Préstamos</h4>
+        <p>Días efectivos por matrícula y obra, ponderados por el % real de cada ruta y sustituciones.</p>
+        <div class="export-row">
+          <div class="field" style="margin:0"><label>Desde</label><input type="date" id="r-desde" class="fi" /></div>
+          <div class="field" style="margin:0"><label>Hasta</label><input type="date" id="r-hasta" class="fi" /></div>
+          <button class="btn btn-primary" onclick="calcReparto()">Calcular</button>
+          <button class="btn btn-green" id="btn-dl-reparto" style="display:none" onclick="dlReparto()">⬇ Excel</button>
+        </div>
+        <div id="prev-reparto" style="margin-top:14px"></div>
+      </div>
+      <div class="export-box">
+        <h4>📋 Gastos del mes — Materiales y Horas mecánico</h4>
+        <p>Coste total por matrícula y obra: materiales, horas (33€/h), externos e ITVs.</p>
+        <div class="export-row">
+          <div class="field" style="margin:0"><label>Desde</label><input type="date" id="g-desde" class="fi" /></div>
+          <div class="field" style="margin:0"><label>Hasta</label><input type="date" id="g-hasta" class="fi" /></div>
+          <button class="btn btn-primary" onclick="calcGastos()">Calcular</button>
+          <button class="btn btn-green" id="btn-dl-gastos" style="display:none" onclick="dlGastos()">⬇ Excel</button>
+        </div>
+        <div id="prev-gastos" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALES -->
+<div class="overlay" id="ov-usuario">
+  <div class="modal">
+    <h3>Nuevo usuario</h3><div class="modal-sub">Acceso para mecánico o gestor</div>
+    <div class="fg">
+      <div class="field full"><label>Nombre completo</label><input id="u-nombre" type="text" /></div>
+      <div class="field"><label>Usuario</label><input id="u-user" type="text" /></div>
+      <div class="field"><label>Contraseña</label><input id="u-pass" type="password" /></div>
+      <div class="field"><label>Rol</label><select id="u-rol"><option value="mecanico">Mecánico</option><option value="gestor">Gestor</option></select></div>
+      <div class="field"><label>Color</label><select id="u-color"><option value="#3b82f6">Azul</option><option value="#22c55e">Verde</option><option value="#a855f7">Morado</option><option value="#f59e0b">Ámbar</option><option value="#ef4444">Rojo</option><option value="#f97316">Naranja</option></select></div>
+    </div>
+    <div class="mfooter"><button class="btn btn-secondary" onclick="closeOv('ov-usuario')">Cancelar</button><button class="btn btn-primary" onclick="saveUsuario()">Crear</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-vehiculo">
+  <div class="modal modal-lg">
+    <h3>Añadir vehículo</h3><div class="modal-sub">Datos del vehículo</div>
+    <div class="fg">
+      <div class="field"><label>Matrícula</label><input id="v-mat" type="text" style="text-transform:uppercase" /></div>
+      <div class="field"><label>Obra asignada</label><select id="v-obra"><option value="">Sin asignar</option></select></div>
+      <div class="field"><label>Marca</label><input id="v-marca" type="text" /></div>
+      <div class="field"><label>Modelo</label><input id="v-modelo" type="text" /></div>
+      <div class="field"><label>Próxima ITV</label><input id="v-itv" type="date" /></div>
+      <div class="field"><label>Próx. mantenimiento (km)</label><input id="v-proxmant" type="number" /></div>
+    </div>
+    <div class="mfooter"><button class="btn btn-secondary" onclick="closeOv('ov-vehiculo')">Cancelar</button><button class="btn btn-primary" onclick="saveVehiculo()">Añadir</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-obra">
+  <div class="modal">
+    <h3>Nueva obra</h3><div class="modal-sub">Añade al catálogo</div>
+    <div class="field"><label>Nombre</label><input id="o-nombre" type="text" style="text-transform:uppercase" /></div>
+    <div class="mfooter"><button class="btn btn-secondary" onclick="closeOv('ov-obra')">Cancelar</button><button class="btn btn-primary" onclick="saveObra()">Crear</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-rutafija">
+  <div class="modal modal-lg">
+    <h3>Nueva ruta fija</h3><div class="modal-sub">Se precargará automáticamente cada día</div>
+    <div class="fg">
+      <div class="field"><label>Matrícula</label><select id="rfj-mat"><option value="">Seleccionar</option></select></div>
+      <div class="field"><label>Nombre de la ruta</label><input id="rfj-nombre" type="text" placeholder="Ej: Ruta Norte Cariñena" /></div>
+      <div class="field"><label>Obra</label><select id="rfj-obra"><option value="">Seleccionar</option></select></div>
+      <div class="field"><label>KM de la ruta</label><input id="rfj-km" type="number" /></div>
+      <div class="field full"><label>Días activos</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+          <label style="display:flex;align-items:center;gap:4px;text-transform:none;font-size:13px;cursor:pointer"><input type="checkbox" id="rfj-l" checked> Lun</label>
+          <label style="display:flex;align-items:center;gap:4px;text-transform:none;font-size:13px;cursor:pointer"><input type="checkbox" id="rfj-ma" checked> Mar</label>
+          <label style="display:flex;align-items:center;gap:4px;text-transform:none;font-size:13px;cursor:pointer"><input type="checkbox" id="rfj-x" checked> Mié</label>
+          <label style="display:flex;align-items:center;gap:4px;text-transform:none;font-size:13px;cursor:pointer"><input type="checkbox" id="rfj-j" checked> Jue</label>
+          <label style="display:flex;align-items:center;gap:4px;text-transform:none;font-size:13px;cursor:pointer"><input type="checkbox" id="rfj-v" checked> Vie</label>
+          <label style="display:flex;align-items:center;gap:4px;text-transform:none;font-size:13px;cursor:pointer"><input type="checkbox" id="rfj-s"> Sáb</label>
+          <label style="display:flex;align-items:center;gap:4px;text-transform:none;font-size:13px;cursor:pointer"><input type="checkbox" id="rfj-d"> Dom</label>
+        </div>
+      </div>
+      <div class="field full"><label>Conductor habitual</label><input id="rfj-conductor" type="text" /></div>
+    </div>
+    <div class="mfooter"><button class="btn btn-secondary" onclick="closeOv('ov-rutafija')">Cancelar</button><button class="btn btn-primary" onclick="saveRutaFija()">Crear</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-taller">
+  <div class="modal modal-lg">
+    <h3 id="ot-title">Nuevo registro</h3><div class="modal-sub">Registra el trabajo o material</div>
+    <input type="hidden" id="t-id" />
+    <div class="fg">
+      <div class="field"><label>Fecha</label><input id="t-fecha" type="date" /></div>
+      <div class="field"><label>Tipo</label>
+        <select id="t-tipo" onchange="updateTF()">
+          <option value="Material">Material comprado</option>
+          <option value="Horas reparación">Horas de reparación</option>
+          <option value="Reparación externa">Reparación externa</option>
+          <option value="ITV">ITV</option>
+        </select>
+      </div>
+      <div class="field"><label>Matrícula</label><select id="t-mat"><option value="">Seleccionar</option></select></div>
+      <div class="field"><label>Obra</label><select id="t-obra"><option value="">Seleccionar</option></select></div>
+      <div class="field full"><label>Descripción</label><input id="t-desc" type="text" /></div>
+      <div class="field tf-h"><label>Mecánico</label><select id="t-mec"><option value="">Seleccionar</option></select></div>
+      <div class="field tf-h"><label>Horas</label><input id="t-horas" type="number" step="0.5" min="0" /></div>
+      <div class="field tf-m"><label>Proveedor</label><input id="t-prov" type="text" /></div>
+      <div class="field tf-m"><label>Nº Albarán</label><input id="t-alb" type="text" /></div>
+      <div class="field tf-m"><label>Coste sin IVA (€)</label><input id="t-coste" type="number" step="0.01" /></div>
+      <div class="field tf-m"><label>Coste con IVA (€)</label><input id="t-costeiva" type="number" step="0.01" /></div>
+      <div class="field tf-e"><label>Taller externo</label><input id="t-ext" type="text" /></div>
+      <div class="field tf-e"><label>Coste (€)</label><input id="t-costext" type="number" step="0.01" /></div>
+      <div class="field tf-i"><label>Resultado ITV</label><select id="t-itvr"><option>Favorable</option><option>Desfavorable</option><option>Negativa</option></select></div>
+      <div class="field tf-i"><label>Próxima ITV</label><input id="t-itvp" type="date" /></div>
+      <div class="field tf-i"><label>Coste ITV (€)</label><input id="t-costitv" type="number" step="0.01" /></div>
+      <div class="field full"><label>Observaciones</label><textarea id="t-obs" rows="2" style="resize:vertical"></textarea></div>
+    </div>
+    <div class="mfooter"><button class="btn btn-secondary" onclick="closeOv('ov-taller')">Cancelar</button><button class="btn btn-primary" onclick="saveTaller()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-ruta">
+  <div class="modal modal-lg">
+    <h3 id="or-title">Nueva ruta</h3><div class="modal-sub">Planifica o registra el servicio</div>
+    <input type="hidden" id="r-id" />
+    <div class="fg">
+      <div class="field"><label>Fecha</label><input id="r-fecha" type="date" /></div>
+      <div class="field"><label>Tipo</label>
+        <select id="r-tipo" onchange="updateRF()">
+          <option value="ruta">Ruta programada</option>
+          <option value="extra">Trabajo extra</option>
+        </select>
+      </div>
+      <div class="field"><label>Matrícula</label><select id="r-mat"><option value="">Seleccionar</option></select></div>
+      <div class="field"><label>Conductor</label><input id="r-conductor" type="text" /></div>
+      <div class="field r-ruta"><label>Ruta fija (opcional)</label><select id="r-rutafija" onchange="preloadRF()"><option value="">— Nueva ruta —</option></select></div>
+      <div class="field r-ruta"><label>Nombre de la ruta</label><input id="r-nombre" type="text" /></div>
+      <div class="field"><label>Obra</label><select id="r-obra"><option value="">Seleccionar</option></select></div>
+      <div class="field r-ruta"><label>KM previstos</label><input id="r-km-prev" type="number" /></div>
+      <div class="field full r-extra"><label>Descripción del trabajo extra</label><input id="r-extradesc" type="text" placeholder="Ej: Recogida urgente polígono norte" /></div>
+      <div class="field full"><label>Notas / Incidencias</label><textarea id="r-notas" rows="2" style="resize:vertical"></textarea></div>
+    </div>
+    <div style="padding:14px 0;border-top:1px solid var(--border);margin-top:4px">
+      <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:12px">Estado al cierre del día</div>
+      <div class="fg">
+        <div class="field"><label>Estado</label>
+          <select id="r-estado" onchange="updateRF()">
+            <option value="planificada">📋 Planificada</option>
+            <option value="completada">✅ Completada</option>
+            <option value="parcial">⚠️ Parcial / No terminada</option>
+            <option value="averia">🔴 Avería</option>
+          </select>
+        </div>
+        <div class="field r-parcial"><label>% completado</label><input id="r-pct" type="number" min="0" max="100" /></div>
+        <div class="field r-parcial"><label>KM reales realizados</label><input id="r-km-real" type="number" /></div>
+        <div class="field r-parcial"><label>Camión sustituto</label><select id="r-sust" onchange="updateRF()"><option value="">Sin sustituto</option></select></div>
+        <div class="field r-sust-pct" style="display:none"><label>% que hizo el sustituto</label><input id="r-sustpct" type="number" min="0" max="100" /></div>
+      </div>
+    </div>
+    <div class="mfooter"><button class="btn btn-secondary" onclick="closeOv('ov-ruta')">Cancelar</button><button class="btn btn-primary" onclick="saveRuta()">Guardar</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ══════════════════════════════════════════════
+//  SUPABASE CONFIG
+// ══════════════════════════════════════════════
+const SB_URL = 'https://jnyrligxvlsitkvthhbl.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpueXJsaWd4dmxzaXRrdnRoaGJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2MzcwMDgsImV4cCI6MjEwMzIxMzAwOH0.rm3kJAk2d0cx_UITpvUl2eXKNgj5lGlfuMsAyhN2_No';
+
+async function sb(table, method='GET', body=null, query=''){
+  const url = `${SB_URL}/rest/v1/${table}${query}`;
+  const opts = {
+    method,
+    headers:{
+      'apikey': SB_KEY,
+      'Authorization': `Bearer ${SB_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': method==='POST'?'return=representation':'',
+    }
+  };
+  if(body) opts.body = JSON.stringify(body);
+  const res = await fetch(url, opts);
+  if(!res.ok){ const e=await res.text(); throw new Error(e); }
+  if(res.status===204) return null;
+  return res.json();
+}
+
+const GET  = (t,q='')    => sb(t,'GET',null,q);
+const POST = (t,b)       => sb(t,'POST',b);
+const PATCH= (t,b,q)    => sb(t,'PATCH',b,q);
+const DEL  = (t,q)      => sb(t,'DELETE',null,q);
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let cu=null, pendingMod=null;
+let cache={ usuarios:[], obras:[], flota:[], rutasFijas:[], taller:[], rutas:[] };
+let _repartoRows=[], _gastosRows=[];
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+async function init(){
+  try {
+    const [u,o,f,rf] = await Promise.all([
+      GET('usuarios','?select=*&order=nombre'),
+      GET('obras','?select=*&order=nombre'),
+      GET('flota','?select=*&order=matricula'),
+      GET('rutas_fijas','?select=*&order=nombre'),
+    ]);
+    cache.usuarios=u||[]; cache.obras=o||[]; cache.flota=f||[]; cache.rutasFijas=rf||[];
+    document.getElementById('loading-screen').style.display='none';
+    document.getElementById('home-screen').style.display='flex';
+  } catch(e){
+    document.querySelector('.loading-text').textContent='Error de conexión. Recarga la página.';
+    console.error(e);
+  }
+}
+
+// ══════════════════════════════════════════════
+//  OVERLAYS / NAV
+// ══════════════════════════════════════════════
+function openOv(id){ document.getElementById(id).classList.add('open'); }
+function closeOv(id){ document.getElementById(id).classList.remove('open'); }
+document.addEventListener('click',e=>{ if(e.target.classList.contains('overlay')) e.target.classList.remove('open'); });
+
+function goHome(){
+  document.getElementById('home-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  cu=null;
+  document.getElementById('btn-logout').style.display='none';
+  document.getElementById('top-user').style.display='none';
+}
+
+function goModule(mod){
+  if(mod==='general'){ launchModule(mod,null); return; }
+  pendingMod=mod;
+  const titles={gestor:'Acceso a Gestor',taller:'Acceso a Taller',rutas:'Acceso a Diario de Rutas'};
+  document.getElementById('login-title').textContent=titles[mod]||'Acceso';
+  document.getElementById('lerr').style.display='none';
+  document.getElementById('lu').value=''; document.getElementById('lp').value='';
+  openOv('ov-login');
+  setTimeout(()=>document.getElementById('lu').focus(),120);
+}
+
+async function doLogin(){
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value;
+  const btn=document.getElementById('btn-login-ok');
+  const err=document.getElementById('lerr');
+  btn.disabled=true; btn.textContent='Verificando...';
+  try {
+    const users = await GET('usuarios',`?usuario=eq.${encodeURIComponent(u)}&password=eq.${encodeURIComponent(p)}&select=*`);
+    if(!users||!users.length){ err.style.display='block'; err.textContent='Usuario o contraseña incorrectos.'; return; }
+    const user=users[0];
+    if(pendingMod==='gestor'&&user.rol!=='gestor'){ err.style.display='block'; err.textContent='Solo gestores pueden acceder a este módulo.'; return; }
+    cu=user; closeOv('ov-login'); launchModule(pendingMod,user);
+  } catch(e){ err.style.display='block'; err.textContent='Error de conexión.'; }
+  finally{ btn.disabled=false; btn.textContent='Entrar →'; }
+}
+
+function doLogout(){ cu=null; goHome(); }
+
+async function launchModule(mod, user){
+  document.getElementById('home-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-'+mod).classList.add('active');
+  const colors={gestor:'#3b82f6',taller:'#22c55e',rutas:'#f59e0b',general:'#a855f7'};
+  const names={gestor:'Gestor',taller:'Taller',rutas:'Diario de Rutas',general:'General'};
+  const pill=document.getElementById('mod-pill');
+  pill.textContent=names[mod]; pill.style.cssText=`padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;background:${colors[mod]}22;border:1px solid ${colors[mod]}44;color:${colors[mod]}`;
+  if(user){
+    document.getElementById('top-user').style.display='flex';
+    document.getElementById('top-av').textContent=ini(user.nombre);
+    document.getElementById('top-av').style.background=user.color;
+    document.getElementById('top-name').textContent=user.nombre;
+    document.getElementById('top-role').textContent=user.rol==='gestor'?'Gestor':'Mecánico';
+    document.getElementById('btn-logout').style.display='';
+  }
+  const today=new Date().toISOString().split('T')[0];
+  const ym=today.substring(0,7);
+  populateSel();
+  if(mod==='gestor'){ renderUsers(); renderFlota(); renderObras(); renderRutasFijas(); renderAlertas(); }
+  if(mod==='taller'){ document.getElementById('tf-mes').value=ym; document.getElementById('t-fecha').value=today; await renderTaller(); }
+  if(mod==='rutas'){ document.getElementById('rf-fecha').value=today; await renderRutas(); }
+  if(mod==='general'){
+    document.getElementById('r-desde').value=ym+'-01'; document.getElementById('r-hasta').value=today;
+    document.getElementById('g-desde').value=ym+'-01'; document.getElementById('g-hasta').value=today;
+  }
+  updateTF(); updateRF();
+}
+
+function showIns(sec,tab,btn){
+  document.querySelectorAll('#s-'+sec+' .ins').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('#s-'+sec+' .it').forEach(t=>t.classList.remove('active'));
+  document.getElementById('g-'+tab).classList.add('active'); btn.classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+//  SELECTS
+// ══════════════════════════════════════════════
+function populateSel(){
+  const obras=cache.obras.map(o=>o.nombre).sort();
+  const mats=cache.flota.map(f=>f.matricula).sort();
+  ['t-obra','r-obra','tf-obra','rfj-obra','v-obra'].forEach(id=>{
+    const el=document.getElementById(id); if(!el)return;
+    const fv=el.value; const f0=el.options[0].cloneNode(true);
+    el.innerHTML=''; el.appendChild(f0);
+    obras.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;el.appendChild(op);});
+    el.value=fv;
+  });
+  ['t-mat','r-mat','r-sust','rfj-mat'].forEach(id=>{
+    const el=document.getElementById(id); if(!el)return;
+    const fv=el.value; const f0=el.options[0].cloneNode(true);
+    el.innerHTML=''; el.appendChild(f0);
+    mats.forEach(m=>{const op=document.createElement('option');op.value=m;op.textContent=m;el.appendChild(op);});
+    el.value=fv;
+  });
+  // Filtros
+  ['rf-obra','rf-mat'].forEach(id=>{
+    const el=document.getElementById(id); if(!el)return;
+    const fv=el.value;
+    el.innerHTML=id==='rf-obra'?'<option value="">Todas las obras</option>':'<option value="">Todas las matrículas</option>';
+    (id==='rf-obra'?obras:mats).forEach(v=>{const op=document.createElement('option');op.value=v;op.textContent=v;el.appendChild(op);});
+    el.value=fv;
+  });
+  // Mecánicos
+  const ms=document.getElementById('t-mec'); if(ms){
+    const fv=ms.value; const f0=ms.options[0].cloneNode(true);
+    ms.innerHTML=''; ms.appendChild(f0);
+    cache.usuarios.filter(u=>u.rol==='mecanico').forEach(u=>{const op=document.createElement('option');op.value=u.nombre;op.textContent=u.nombre;ms.appendChild(op);});
+    ms.value=fv;
+  }
+  // Rutas fijas select
+  const rfs=document.getElementById('r-rutafija'); if(rfs){
+    const f0=rfs.options[0].cloneNode(true); rfs.innerHTML=''; rfs.appendChild(f0);
+    cache.rutasFijas.filter(r=>r.activa).forEach(r=>{const op=document.createElement('option');op.value=r.id;op.textContent=r.matricula+' — '+r.nombre;rfs.appendChild(op);});
+  }
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function ini(n){return n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();}
+function fd(d){if(!d)return'—';try{const[y,m,dd]=(typeof d==='string'?d.substring(0,10):d).split('-');return`${dd}/${m}/${y}`;}catch{return d;}}
+function eur(n){return(n||0).toLocaleString('es-ES',{style:'currency',currency:'EUR',minimumFractionDigits:2});}
+function loading(el,txt='Guardando...'){el.disabled=true;el._orig=el.textContent;el.textContent=txt;}
+function done(el){el.disabled=false;el.textContent=el._orig||'Guardar';}
+
+// ══════════════════════════════════════════════
+//  GESTOR: USUARIOS
+// ══════════════════════════════════════════════
+function renderUsers(){
+  document.getElementById('users-list').innerHTML=cache.usuarios.map(u=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 15px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:34px;height:34px;border-radius:50%;background:${u.color};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">${ini(u.nombre)}</div>
+        <div><div style="font-weight:600">${u.nombre}</div>
+        <div style="color:var(--text3);font-size:12px">@${u.usuario} · <span class="badge ${u.rol==='gestor'?'bg-blue':'bg-green'}" style="font-size:10px">${u.rol}</span></div></div>
+      </div>
+      ${u.usuario!=='admin'?`<button class="btn btn-danger btn-sm" onclick="delUser('${u.id}')">Eliminar</button>`:'<span style="color:var(--text3);font-size:12px">Admin</span>'}
+    </div>`).join('');
+}
+
+async function saveUsuario(){
+  const nombre=document.getElementById('u-nombre').value.trim();
+  const usuario=document.getElementById('u-user').value.trim();
+  const password=document.getElementById('u-pass').value;
+  if(!nombre||!usuario||!password){alert('Nombre, usuario y contraseña son obligatorios');return;}
+  if(cache.usuarios.find(u=>u.usuario===usuario)){alert('Ese usuario ya existe');return;}
+  try {
+    const r=await POST('usuarios',{nombre,usuario,password,rol:document.getElementById('u-rol').value,color:document.getElementById('u-color').value});
+    cache.usuarios.push(r[0]); renderUsers(); populateSel(); closeOv('ov-usuario');
+    ['u-nombre','u-user','u-pass'].forEach(id=>document.getElementById(id).value='');
+  } catch(e){ alert('Error al crear usuario: '+e.message); }
+}
+
+async function delUser(id){
+  if(!confirm('¿Eliminar este usuario?'))return;
+  try { await DEL('usuarios',`?id=eq.${id}`); cache.usuarios=cache.usuarios.filter(u=>u.id!==id); renderUsers(); populateSel(); }
+  catch(e){ alert('Error: '+e.message); }
+}
+
+// ══════════════════════════════════════════════
+//  GESTOR: FLOTA
+// ══════════════════════════════════════════════
+function renderFlota(){
+  const tbody=document.getElementById('flota-tbody');
+  const today=new Date();
+  if(!cache.flota.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--text3)">Sin vehículos</td></tr>';return;}
+  tbody.innerHTML=cache.flota.map(v=>{
+    let itvB='<span class="badge bg-gray">Sin fecha</span>';let rc='';
+    if(v.proxima_itv){const d=(new Date(v.proxima_itv)-today)/86400000;
+      if(d<0){itvB=`<span class="badge bg-red">⚠ VENCIDA</span>`;rc='itv-danger';}
+      else if(d<30){itvB=`<span class="badge bg-yellow">⚡ ${Math.round(d)}d</span>`;rc='itv-warn';}
+      else itvB=`<span class="badge bg-green">${fd(v.proxima_itv)}</span>`;}
+    return `<tr class="${rc}"><td><strong class="mono">${v.matricula}</strong></td><td>${v.marca||''} ${v.modelo||''}</td>
+      <td><span class="badge bg-blue">${v.obra||'—'}</span></td><td>${itvB}</td>
+      <td>${v.prox_mantenimiento?v.prox_mantenimiento+' km':'<span style="color:var(--text3)">—</span>'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="delVeh('${v.id}')">Quitar</button></td></tr>`;
+  }).join('');
+}
+
+async function saveVehiculo(){
+  const mat=document.getElementById('v-mat').value.trim().toUpperCase();
+  if(!mat){alert('Matrícula obligatoria');return;}
+  if(cache.flota.find(f=>f.matricula===mat)){alert('Matrícula ya registrada');return;}
+  try {
+    const r=await POST('flota',{matricula:mat,obra:document.getElementById('v-obra').value||null,marca:document.getElementById('v-marca').value.trim()||null,modelo:document.getElementById('v-modelo').value.trim()||null,proxima_itv:document.getElementById('v-itv').value||null,prox_mantenimiento:document.getElementById('v-proxmant').value||null});
+    cache.flota.push(r[0]); cache.flota.sort((a,b)=>a.matricula.localeCompare(b.matricula));
+    renderFlota(); populateSel(); closeOv('ov-vehiculo');
+    ['v-mat','v-marca','v-modelo','v-itv','v-proxmant'].forEach(id=>document.getElementById(id).value='');
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+async function delVeh(id){
+  if(!confirm('¿Eliminar vehículo?'))return;
+  try { await DEL('flota',`?id=eq.${id}`); cache.flota=cache.flota.filter(f=>f.id!==id); renderFlota(); populateSel(); }
+  catch(e){ alert('Error: '+e.message); }
+}
+
+// ══════════════════════════════════════════════
+//  GESTOR: OBRAS
+// ══════════════════════════════════════════════
+function renderObras(){
+  document.getElementById('obras-list').innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:8px">`+
+    cache.obras.map(o=>`<div style="display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px">
+      <span style="font-size:13px;font-weight:600">${o.nombre}</span>
+      <button onclick="delObra('${o.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1;padding:0 0 0 4px">×</button>
+    </div>`).join('')+`</div>`;
+}
+
+async function saveObra(){
+  const nombre=document.getElementById('o-nombre').value.trim().toUpperCase();
+  if(!nombre){alert('Nombre obligatorio');return;}
+  if(cache.obras.find(o=>o.nombre===nombre)){alert('Ya existe');return;}
+  try {
+    const r=await POST('obras',{nombre});
+    cache.obras.push(r[0]); cache.obras.sort((a,b)=>a.nombre.localeCompare(b.nombre));
+    renderObras(); populateSel(); closeOv('ov-obra');
+    document.getElementById('o-nombre').value='';
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+async function delObra(id){
+  if(!confirm('¿Eliminar obra?'))return;
+  try { await DEL('obras',`?id=eq.${id}`); cache.obras=cache.obras.filter(o=>o.id!==id); renderObras(); populateSel(); }
+  catch(e){ alert('Error: '+e.message); }
+}
+
+// ══════════════════════════════════════════════
+//  GESTOR: RUTAS FIJAS
+// ══════════════════════════════════════════════
+function renderRutasFijas(){
+  const tbody=document.getElementById('rutasfijas-tbody');
+  if(!cache.rutasFijas.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text3)">Sin rutas fijas</td></tr>';return;}
+  const dn=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  tbody.innerHTML=cache.rutasFijas.map(r=>`<tr>
+    <td><strong class="mono">${r.matricula}</strong></td>
+    <td>${r.nombre}</td>
+    <td><span class="badge bg-blue">${r.obra}</span></td>
+    <td class="mono">${r.km||'—'} km</td>
+    <td style="font-size:12px">${(r.dias||[]).map(d=>dn[d]).join(', ')}</td>
+    <td><span class="badge ${r.activa?'bg-green':'bg-gray'}">${r.activa?'Activa':'Inactiva'}</span></td>
+    <td style="white-space:nowrap">
+      <button class="btn btn-secondary btn-sm" onclick="toggleRF('${r.id}',${!r.activa})">${r.activa?'Desactivar':'Activar'}</button>
+      <button class="btn btn-danger btn-sm" onclick="delRF('${r.id}')" style="margin-left:4px">×</button>
+    </td></tr>`).join('');
+}
+
+async function saveRutaFija(){
+  const matricula=document.getElementById('rfj-mat').value;
+  const nombre=document.getElementById('rfj-nombre').value.trim();
+  const obra=document.getElementById('rfj-obra').value;
+  if(!matricula||!nombre||!obra){alert('Matrícula, nombre y obra son obligatorios');return;}
+  const dias=[];
+  if(document.getElementById('rfj-d').checked) dias.push(0);
+  if(document.getElementById('rfj-l').checked) dias.push(1);
+  if(document.getElementById('rfj-ma').checked) dias.push(2);
+  if(document.getElementById('rfj-x').checked) dias.push(3);
+  if(document.getElementById('rfj-j').checked) dias.push(4);
+  if(document.getElementById('rfj-v').checked) dias.push(5);
+  if(document.getElementById('rfj-s').checked) dias.push(6);
+  if(!dias.length){alert('Selecciona al menos un día');return;}
+  try {
+    const r=await POST('rutas_fijas',{matricula,nombre,obra,km:parseInt(document.getElementById('rfj-km').value)||0,dias,conductor:document.getElementById('rfj-conductor').value.trim()||null,activa:true});
+    cache.rutasFijas.push(r[0]); renderRutasFijas(); populateSel(); closeOv('ov-rutafija');
+    ['rfj-nombre','rfj-conductor','rfj-km'].forEach(id=>document.getElementById(id).value='');
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+async function toggleRF(id, activa){
+  try {
+    await PATCH('rutas_fijas',{activa},`?id=eq.${id}`);
+    const rf=cache.rutasFijas.find(r=>r.id===id); if(rf) rf.activa=activa;
+    renderRutasFijas(); populateSel();
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+async function delRF(id){
+  if(!confirm('¿Eliminar ruta fija?'))return;
+  try { await DEL('rutas_fijas',`?id=eq.${id}`); cache.rutasFijas=cache.rutasFijas.filter(r=>r.id!==id); renderRutasFijas(); populateSel(); }
+  catch(e){ alert('Error: '+e.message); }
+}
+
+// ══════════════════════════════════════════════
+//  GESTOR: ALERTAS
+// ══════════════════════════════════════════════
+function renderAlertas(){
+  const today=new Date(); const hace3=new Date(); hace3.setDate(today.getDate()-3);
+  const al=[];
+  cache.flota.forEach(v=>{
+    if(!v.proxima_itv)return; const d=(new Date(v.proxima_itv)-today)/86400000;
+    if(d<0) al.push({t:'d',i:'🚨',m:`<strong>${v.matricula}</strong> — ITV VENCIDA (${fd(v.proxima_itv)})`});
+    else if(d<30) al.push({t:'w',i:'⚠️',m:`<strong>${v.matricula}</strong> — ITV en ${Math.round(d)} días (${fd(v.proxima_itv)})`});
+  });
+  document.getElementById('abadge').textContent=al.length;
+  const c=document.getElementById('alertas-list');
+  if(!al.length){c.innerHTML='<div class="alert alert-s">✅ Sin alertas pendientes</div>';return;}
+  c.innerHTML=al.map(a=>`<div class="alert ${a.t==='d'?'alert-d':'alert-w'}"><span style="font-size:18px">${a.i}</span><span>${a.m}</span></div>`).join('');
+}
+
+// ══════════════════════════════════════════════
+//  TALLER
+// ══════════════════════════════════════════════
+function updateTF(){
+  const t=document.getElementById('t-tipo').value;
+  document.querySelectorAll('.tf-h').forEach(e=>e.style.display=t==='Horas reparación'?'':'none');
+  document.querySelectorAll('.tf-m').forEach(e=>e.style.display=t==='Material'?'':'none');
+  document.querySelectorAll('.tf-e').forEach(e=>e.style.display=t==='Reparación externa'?'':'none');
+  document.querySelectorAll('.tf-i').forEach(e=>e.style.display=t==='ITV'?'':'none');
+}
+
+function openTallerModal(){
+  document.getElementById('ot-title').textContent='Nuevo registro';
+  document.getElementById('t-id').value='';
+  document.getElementById('t-fecha').value=new Date().toISOString().split('T')[0];
+  document.getElementById('t-tipo').value='Material';
+  ['t-mat','t-obra','t-mec'].forEach(id=>document.getElementById(id).value='');
+  ['t-desc','t-obs','t-prov','t-alb','t-ext','t-horas','t-coste','t-costeiva','t-costext','t-costitv','t-itvp'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  updateTF(); openOv('ov-taller');
+}
+
+async function saveTaller(){
+  const fecha=document.getElementById('t-fecha').value;
+  const tipo=document.getElementById('t-tipo').value;
+  const matricula=document.getElementById('t-mat').value;
+  const obra=document.getElementById('t-obra').value;
+  const descripcion=document.getElementById('t-desc').value.trim();
+  if(!fecha||!tipo||!matricula||!obra||!descripcion){alert('Fecha, tipo, matrícula, obra y descripción son obligatorios');return;}
+  const payload={fecha,tipo,matricula,obra,descripcion,
+    mecanico:document.getElementById('t-mec').value||null,
+    horas:parseFloat(document.getElementById('t-horas').value)||0,
+    proveedor:document.getElementById('t-prov').value.trim()||null,
+    albaran:document.getElementById('t-alb').value.trim()||null,
+    coste:parseFloat(document.getElementById('t-coste').value)||0,
+    coste_iva:parseFloat(document.getElementById('t-costeiva').value)||0,
+    taller_ext:document.getElementById('t-ext').value.trim()||null,
+    coste_ext:parseFloat(document.getElementById('t-costext').value)||0,
+    itv_resultado:document.getElementById('t-itvr').value,
+    itv_proxima:document.getElementById('t-itvp').value||null,
+    coste_itv:parseFloat(document.getElementById('t-costitv').value)||0,
+    observaciones:document.getElementById('t-obs').value.trim()||null,
+    usuario:cu?cu.nombre:'—'};
+  const eid=document.getElementById('t-id').value;
+  try {
+    if(eid){ await PATCH('taller',payload,`?id=eq.${eid}`); }
+    else { await POST('taller',payload); }
+    // Update ITV in flota if needed
+    if(tipo==='ITV'&&payload.itv_proxima){
+      const v=cache.flota.find(f=>f.matricula===matricula);
+      if(v){ await PATCH('flota',{proxima_itv:payload.itv_proxima},`?id=eq.${v.id}`); v.proxima_itv=payload.itv_proxima; }
+    }
+    closeOv('ov-taller'); await renderTaller();
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+async function renderTaller(){
+  const fm=document.getElementById('tf-mes').value;
+  const ft=document.getElementById('tf-tipo').value;
+  const fo=document.getElementById('tf-obra').value;
+  let q='?select=*&order=fecha.desc';
+  if(fm) q+=`&fecha=gte.${fm}-01&fecha=lte.${fm}-31`;
+  if(ft) q+=`&tipo=eq.${encodeURIComponent(ft)}`;
+  if(fo) q+=`&obra=eq.${encodeURIComponent(fo)}`;
+  const tbody=document.getElementById('taller-tbody');
+  tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--text3)">Cargando...</td></tr>';
+  try {
+    const data=await GET('taller',q);
+    cache.taller=data||[];
+    const tH=data.filter(t=>t.tipo==='Horas reparación').reduce((s,t)=>s+(t.horas||0),0);
+    const tM=data.filter(t=>t.tipo==='Material').reduce((s,t)=>s+(t.coste||0),0);
+    const tE=data.filter(t=>t.tipo==='Reparación externa').reduce((s,t)=>s+(t.coste_ext||0),0);
+    const tI=data.filter(t=>t.tipo==='ITV').reduce((s,t)=>s+(t.coste_itv||0),0);
+    document.getElementById('taller-stats').innerHTML=`
+      <div class="stat sb"><div class="stat-label">Registros</div><div class="stat-value">${data.length}</div></div>
+      <div class="stat sg"><div class="stat-label">Horas</div><div class="stat-value">${tH.toFixed(1)}h</div><div class="stat-sub">${eur(tH*33)}</div></div>
+      <div class="stat sy"><div class="stat-label">Material</div><div class="stat-value">${eur(tM)}</div><div class="stat-sub">sin IVA</div></div>
+      <div class="stat sp"><div class="stat-label">Total estimado</div><div class="stat-value">${eur(tH*33+tM+tE+tI)}</div></div>`;
+    if(!data.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--text3)">Sin registros</td></tr>';return;}
+    const tb={'Material':'bg-blue','Horas reparación':'bg-green','Reparación externa':'bg-orange','ITV':'bg-purple'};
+    tbody.innerHTML=data.map(t=>{
+      let cs='—';
+      if(t.tipo==='Horas reparación') cs=`${t.horas}h · ${eur((t.horas||0)*33)}`;
+      else if(t.tipo==='Material'&&t.coste) cs=eur(t.coste);
+      else if(t.tipo==='Reparación externa'&&t.coste_ext) cs=eur(t.coste_ext);
+      else if(t.tipo==='ITV'&&t.coste_itv) cs=eur(t.coste_itv);
+      return `<tr>
+        <td class="mono">${fd(t.fecha)}</td>
+        <td><span class="badge ${tb[t.tipo]||'bg-gray'}">${t.tipo}</span></td>
+        <td><strong class="mono">${t.matricula}</strong></td>
+        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.descripcion}">${t.descripcion}</td>
+        <td>${t.mecanico||'—'}</td>
+        <td>${t.tipo==='Horas reparación'?t.horas+'h':'—'}</td>
+        <td class="mono">${cs}</td>
+        <td><span class="badge bg-gray" style="font-size:10px">${t.obra}</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-secondary btn-sm" onclick="editTaller('${t.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="delTaller('${t.id}')" style="margin-left:3px">×</button>
+        </td></tr>`;
+    }).join('');
+  } catch(e){ tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--red)">Error al cargar datos</td></tr>`; }
+}
+
+async function editTaller(id){
+  try {
+    const data=await GET('taller',`?id=eq.${id}&select=*`);
+    const t=data[0]; if(!t)return;
+    document.getElementById('ot-title').textContent='Editar registro';
+    document.getElementById('t-id').value=t.id;
+    document.getElementById('t-fecha').value=t.fecha;document.getElementById('t-tipo').value=t.tipo;
+    document.getElementById('t-mat').value=t.matricula;document.getElementById('t-obra').value=t.obra;
+    document.getElementById('t-desc').value=t.descripcion||'';document.getElementById('t-mec').value=t.mecanico||'';
+    document.getElementById('t-horas').value=t.horas||'';document.getElementById('t-prov').value=t.proveedor||'';
+    document.getElementById('t-alb').value=t.albaran||'';document.getElementById('t-coste').value=t.coste||'';
+    document.getElementById('t-costeiva').value=t.coste_iva||'';document.getElementById('t-ext').value=t.taller_ext||'';
+    document.getElementById('t-costext').value=t.coste_ext||'';document.getElementById('t-itvr').value=t.itv_resultado||'Favorable';
+    document.getElementById('t-itvp').value=t.itv_proxima||'';document.getElementById('t-costitv').value=t.coste_itv||'';
+    document.getElementById('t-obs').value=t.observaciones||'';
+    updateTF(); openOv('ov-taller');
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+async function delTaller(id){
+  if(!confirm('¿Eliminar?'))return;
+  try { await DEL('taller',`?id=eq.${id}`); await renderTaller(); }
+  catch(e){ alert('Error: '+e.message); }
+}
+
+// ══════════════════════════════════════════════
+//  RUTAS DIARIO
+// ══════════════════════════════════════════════
+function updateRF(){
+  const tipo=document.getElementById('r-tipo').value;
+  const estado=document.getElementById('r-estado').value;
+  const sust=document.getElementById('r-sust').value;
+  document.querySelectorAll('.r-ruta').forEach(e=>e.style.display=tipo==='ruta'?'':'none');
+  document.querySelectorAll('.r-extra').forEach(e=>e.style.display=tipo==='extra'?'':'none');
+  const isParcial=estado==='parcial'||estado==='averia';
+  document.querySelectorAll('.r-parcial').forEach(e=>e.style.display=isParcial?'':'none');
+  document.querySelectorAll('.r-sust-pct').forEach(e=>e.style.display=(isParcial&&sust)?'':'none');
+}
+
+function openRutaModal(){
+  document.getElementById('or-title').textContent='Nueva ruta / trabajo extra';
+  document.getElementById('r-id').value='';
+  document.getElementById('r-fecha').value=document.getElementById('rf-fecha').value||new Date().toISOString().split('T')[0];
+  document.getElementById('r-tipo').value='ruta';
+  document.getElementById('r-mat').value='';document.getElementById('r-conductor').value='';
+  document.getElementById('r-rutafija').value='';document.getElementById('r-nombre').value='';
+  document.getElementById('r-obra').value='';document.getElementById('r-km-prev').value='';
+  document.getElementById('r-extradesc').value='';document.getElementById('r-notas').value='';
+  document.getElementById('r-estado').value='planificada';document.getElementById('r-pct').value='';
+  document.getElementById('r-km-real').value='';document.getElementById('r-sust').value='';document.getElementById('r-sustpct').value='';
+  updateRF(); openOv('ov-ruta');
+}
+
+function preloadRF(){
+  const id=document.getElementById('r-rutafija').value;
+  if(!id)return;
+  const rf=cache.rutasFijas.find(r=>r.id===id);if(!rf)return;
+  document.getElementById('r-mat').value=rf.matricula;
+  document.getElementById('r-nombre').value=rf.nombre;
+  document.getElementById('r-obra').value=rf.obra;
+  document.getElementById('r-km-prev').value=rf.km||'';
+  if(rf.conductor) document.getElementById('r-conductor').value=rf.conductor;
+}
+
+async function cargarRutasFijas(){
+  const fecha=document.getElementById('rf-fecha').value||new Date().toISOString().split('T')[0];
+  const dow=new Date(fecha+'T12:00:00').getDay();
+  const activas=cache.rutasFijas.filter(r=>r.activa&&(r.dias||[]).includes(dow));
+  if(!activas.length){alert('No hay rutas fijas para ese día de la semana');return;}
+  // Ver cuáles ya existen
+  const existing=await GET('rutas',`?fecha=eq.${fecha}&select=ruta_fija_id`);
+  const existIds=new Set((existing||[]).map(r=>r.ruta_fija_id).filter(Boolean));
+  const nuevas=activas.filter(rf=>!existIds.has(rf.id));
+  if(!nuevas.length){alert('Las rutas fijas de ese día ya estaban cargadas');return;}
+  const inserts=nuevas.map(rf=>({fecha,matricula:rf.matricula,conductor:rf.conductor||'',obra:rf.obra,tipo:'ruta',nombre:rf.nombre,ruta_fija_id:rf.id,km_prev:rf.km||0,km_real:0,estado:'planificada',usuario:cu?cu.nombre:'—'}));
+  try {
+    await POST('rutas',inserts);
+    await renderRutas();
+    alert(`Se han cargado ${inserts.length} ruta(s) para el ${fd(fecha)}`);
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+async function saveRuta(){
+  const fecha=document.getElementById('r-fecha').value;
+  const mat=document.getElementById('r-mat').value;
+  const conductor=document.getElementById('r-conductor').value.trim();
+  const obra=document.getElementById('r-obra').value;
+  if(!fecha||!mat||!conductor||!obra){alert('Fecha, matrícula, conductor y obra son obligatorios');return;}
+  const tipo=document.getElementById('r-tipo').value;
+  const estado=document.getElementById('r-estado').value;
+  let pct=null;
+  if(estado==='completada') pct=100;
+  else if(estado==='parcial'||estado==='averia') pct=parseInt(document.getElementById('r-pct').value)||null;
+  const sust=document.getElementById('r-sust').value||null;
+  const sustPct=sust?parseInt(document.getElementById('r-sustpct').value)||null:null;
+  const payload={fecha,matricula:mat,conductor,obra,tipo,
+    nombre:tipo==='ruta'?document.getElementById('r-nombre').value.trim():null,
+    ruta_fija_id:document.getElementById('r-rutafija').value||null,
+    km_prev:parseInt(document.getElementById('r-km-prev').value)||0,
+    km_real:parseInt(document.getElementById('r-km-real').value)||0,
+    extradesc:document.getElementById('r-extradesc').value.trim()||null,
+    notas:document.getElementById('r-notas').value.trim()||null,
+    estado,pct,sust,sust_pct:sustPct,
+    usuario:cu?cu.nombre:'—'};
+  const eid=document.getElementById('r-id').value;
+  try {
+    if(eid){ await PATCH('rutas',payload,`?id=eq.${eid}`); }
+    else { await POST('rutas',payload); }
+    closeOv('ov-ruta'); await renderRutas();
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+async function renderRutas(){
+  const fecha=document.getElementById('rf-fecha').value;
+  const fo=document.getElementById('rf-obra').value;
+  const fmat=document.getElementById('rf-mat').value;
+  let q='?select=*&order=matricula';
+  if(fecha) q+=`&fecha=eq.${fecha}`;
+  if(fo) q+=`&obra=eq.${encodeURIComponent(fo)}`;
+  if(fmat) q+=`&matricula=eq.${encodeURIComponent(fmat)}`;
+  const c=document.getElementById('rutas-cards');
+  c.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">Cargando...</div>';
+  try {
+    const data=await GET('rutas',q);
+    // Pendientes banner (global, sin filtro)
+    const hace3=new Date(); hace3.setDate(hace3.getDate()-3);
+    const pend=(data||[]).filter(r=>r.estado==='planificada'&&new Date(r.fecha)<hace3);
+    document.getElementById('pend-banner').innerHTML=pend.length?
+      `<div class="alert alert-w">⚠️ <strong>${pend.length} ruta(s)</strong> llevan más de 3 días planificadas sin cerrar.</div>`:'';
+    if(!data||!data.length){c.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3)">Sin rutas para este día.<br><small>Carga las rutas fijas o añade una nueva.</small></div>';return;}
+    const eb={completada:'bg-green',planificada:'bg-blue',parcial:'bg-yellow',averia:'bg-red'};
+    const el={completada:'✅ Completada',planificada:'📋 Planificada',parcial:'⚠️ Parcial',averia:'🔴 Avería'};
+    const cc={completada:'ok',planificada:'',parcial:'incompleta',averia:'averia'};
+    c.innerHTML=data.map(r=>{
+      const pctText=r.pct!=null?`<strong>${r.pct}%</strong>`:`<span style="display:inline-flex;align-items:center;gap:4px"><span class="pending-dot"></span>Pendiente</span>`;
+      const kmText=r.km_real>0?`${r.km_real} km reales`:r.km_prev?`${r.km_prev} km previstos`:'';
+      const tipoX=r.tipo==='extra'?'<span class="badge bg-purple" style="font-size:10px">EXTRA</span> ':'';
+      const sustTxt=r.sust?` · Sust: <strong>${r.sust}</strong>${r.sust_pct!=null?' ('+r.sust_pct+'%)':''}`:'' ;
+      return `<div class="ruta-card ${cc[r.estado]||''}">
+        <div class="rc-head">
+          <div class="rc-mat">${r.matricula}</div>
+          <div class="rc-info">
+            <div class="rc-title">${tipoX}${r.nombre||r.extradesc||r.obra}</div>
+            <div class="rc-sub">
+              <span class="badge bg-blue" style="font-size:10px">${r.obra}</span>
+              ${r.conductor?' · '+r.conductor:''}
+              ${kmText?' · '+kmText:''}
+              ${sustTxt?`<span style="color:var(--text3)">${sustTxt}</span>`:''}
+            </div>
+          </div>
+          <div class="rc-actions">
+            <span class="badge ${eb[r.estado]||'bg-gray'}">${el[r.estado]||r.estado}</span>
+            <span style="font-weight:700;font-size:13px;min-width:50px;text-align:right">${pctText}</span>
+            <button class="btn btn-secondary btn-sm" onclick="editRuta('${r.id}')">✏️ Editar</button>
+            <button class="btn btn-danger btn-sm" onclick="delRuta('${r.id}')">×</button>
+          </div>
+        </div>
+        ${r.notas?`<div style="padding:8px 16px 12px;font-size:12px;color:var(--text3);border-top:1px solid var(--border)">📝 ${r.notas}</div>`:''}
+      </div>`;
+    }).join('');
+  } catch(e){ c.innerHTML=`<div class="alert alert-d">Error al cargar rutas: ${e.message}</div>`; }
+}
+
+async function editRuta(id){
+  try {
+    const data=await GET('rutas',`?id=eq.${id}&select=*`);
+    const r=data[0];if(!r)return;
+    document.getElementById('or-title').textContent='Editar ruta';
+    document.getElementById('r-id').value=r.id;
+    document.getElementById('r-fecha').value=r.fecha;
+    document.getElementById('r-tipo').value=r.tipo||'ruta';
+    document.getElementById('r-mat').value=r.matricula;
+    document.getElementById('r-conductor').value=r.conductor||'';
+    document.getElementById('r-rutafija').value=r.ruta_fija_id||'';
+    document.getElementById('r-nombre').value=r.nombre||'';
+    document.getElementById('r-obra').value=r.obra;
+    document.getElementById('r-km-prev').value=r.km_prev||'';
+    document.getElementById('r-extradesc').value=r.extradesc||'';
+    document.getElementById('r-notas').value=r.notas||'';
+    document.getElementById('r-estado').value=r.estado||'planificada';
+    document.getElementById('r-pct').value=(r.pct!=null&&r.pct!==100)?r.pct:'';
+    document.getElementById('r-km-real').value=r.km_real||'';
+    document.getElementById('r-sust').value=r.sust||'';
+    document.getElementById('r-sustpct').value=r.sust_pct||'';
+    updateRF();openOv('ov-ruta');
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+async function delRuta(id){
+  if(!confirm('¿Eliminar ruta?'))return;
+  try { await DEL('rutas',`?id=eq.${id}`); await renderRutas(); }
+  catch(e){ alert('Error: '+e.message); }
+}
+
+// ══════════════════════════════════════════════
+//  GENERAL
+// ══════════════════════════════════════════════
+const PALETA=['#3b82f6','#22c55e','#f59e0b','#a855f7','#f97316','#ef4444','#06b6d4','#ec4899','#84cc16','#14b8a6'];
+
+async function calcReparto(){
+  const desde=document.getElementById('r-desde').value;
+  const hasta=document.getElementById('r-hasta').value;
+  if(!desde||!hasta){alert('Selecciona las fechas');return;}
+  try {
+    const data=await GET('rutas',`?fecha=gte.${desde}&fecha=lte.${hasta}&estado=neq.planificada&select=*`);
+    if(!data||!data.length){document.getElementById('prev-reparto').innerHTML='<div class="alert alert-w">Sin rutas cerradas en ese período</div>';document.getElementById('btn-dl-reparto').style.display='none';return;}
+    const res={};
+    data.forEach(r=>{
+      const pct=(r.pct!=null?r.pct:100)/100;
+      const km=r.km_real||r.km_prev||0;
+      const add=(mat,obra,p,k)=>{const key=mat+'|||'+obra;if(!res[key])res[key]={matricula:mat,obra,dias:0,km:0};res[key].dias+=p;res[key].km+=k*p;};
+      add(r.matricula,r.obra,pct,km);
+      if(r.sust&&r.sust_pct!=null) add(r.sust,r.obra,r.sust_pct/100,km);
+    });
+    const totMat={};
+    Object.values(res).forEach(r=>{totMat[r.matricula]=(totMat[r.matricula]||0)+r.dias;});
+    const rows=Object.values(res).map(r=>({...r,pct:totMat[r.matricula]>0?(r.dias/totMat[r.matricula]*100):0}))
+      .sort((a,b)=>a.matricula.localeCompare(b.matricula)||a.obra.localeCompare(b.obra));
+    _repartoRows=rows;
+    const mats=[...new Set(rows.map(r=>r.matricula))];
+    const mc={};mats.forEach((m,i)=>mc[m]=PALETA[i%PALETA.length]);
+    document.getElementById('prev-reparto').innerHTML=`
+      <div class="twrap" style="margin-bottom:12px">
+        <table><thead><tr><th>Matrícula</th><th>Obra</th><th>Días efectivos</th><th>KM aprox.</th><th>% reparto</th><th>Visual</th></tr></thead>
+        <tbody>${rows.map(r=>`<tr>
+          <td><strong class="mono" style="color:${mc[r.matricula]}">${r.matricula}</strong></td>
+          <td>${r.obra}</td><td class="mono">${r.dias.toFixed(2)}</td>
+          <td class="mono">${Math.round(r.km)} km</td>
+          <td><strong style="font-size:14px;color:${mc[r.matricula]}">${r.pct.toFixed(1)}%</strong></td>
+          <td><div class="rbar-wrap"><div class="rbar" style="width:${r.pct.toFixed(1)}%;background:${mc[r.matricula]}"></div></div></td>
+        </tr>`).join('')}</tbody></table>
+      </div>
+      <div class="alert alert-i">ℹ️ Multiplica el % por el coste total de gasolina/leasing de ese vehículo para obtener el importe a imputar por obra.</div>`;
+    document.getElementById('btn-dl-reparto').style.display='';
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+async function calcGastos(){
+  const desde=document.getElementById('g-desde').value;
+  const hasta=document.getElementById('g-hasta').value;
+  if(!desde||!hasta){alert('Selecciona las fechas');return;}
+  try {
+    const data=await GET('taller',`?fecha=gte.${desde}&fecha=lte.${hasta}&select=*`);
+    if(!data||!data.length){document.getElementById('prev-gastos').innerHTML='<div class="alert alert-w">Sin datos en ese período</div>';document.getElementById('btn-dl-gastos').style.display='none';return;}
+    const res={};
+    data.forEach(t=>{
+      const k=t.obra+'|||'+t.matricula;
+      if(!res[k])res[k]={obra:t.obra,matricula:t.matricula,horas:0,costeH:0,material:0,externa:0,itv:0};
+      if(t.tipo==='Horas reparación'){res[k].horas+=(t.horas||0);res[k].costeH+=(t.horas||0)*33;}
+      if(t.tipo==='Material') res[k].material+=(t.coste||0);
+      if(t.tipo==='Reparación externa') res[k].externa+=(t.coste_ext||0);
+      if(t.tipo==='ITV') res[k].itv+=(t.coste_itv||0);
+    });
+    const rows=Object.values(res).sort((a,b)=>a.obra.localeCompare(b.obra));
+    _gastosRows=rows;
+    const tH=rows.reduce((s,r)=>s+r.horas,0),tCH=rows.reduce((s,r)=>s+r.costeH,0);
+    const tM=rows.reduce((s,r)=>s+r.material,0),tE=rows.reduce((s,r)=>s+r.externa,0),tI=rows.reduce((s,r)=>s+r.itv,0);
+    document.getElementById('prev-gastos').innerHTML=`
+      <div class="twrap" style="margin-bottom:12px">
+        <table><thead><tr><th>Obra</th><th>Matrícula</th><th>Horas</th><th>Coste horas</th><th>Material</th><th>Rep. externa</th><th>ITV</th><th>TOTAL</th></tr></thead>
+        <tbody>
+          ${rows.map(r=>`<tr><td>${r.obra}</td><td class="mono">${r.matricula}</td>
+            <td class="mono">${r.horas.toFixed(1)}h</td><td class="mono">${eur(r.costeH)}</td>
+            <td class="mono">${eur(r.material)}</td><td class="mono">${eur(r.externa)}</td><td class="mono">${eur(r.itv)}</td>
+            <td class="mono" style="font-weight:700;color:var(--text)">${eur(r.costeH+r.material+r.externa+r.itv)}</td>
+          </tr>`).join('')}
+          <tr style="background:var(--surface2)">
+            <td colspan="2" style="font-weight:700">TOTAL</td>
+            <td class="mono" style="font-weight:700">${tH.toFixed(1)}h</td>
+            <td class="mono" style="font-weight:700">${eur(tCH)}</td>
+            <td class="mono" style="font-weight:700">${eur(tM)}</td>
+            <td class="mono" style="font-weight:700">${eur(tE)}</td>
+            <td class="mono" style="font-weight:700">${eur(tI)}</td>
+            <td class="mono" style="font-weight:700;color:var(--accent);font-size:14px">${eur(tCH+tM+tE+tI)}</td>
+          </tr>
+        </tbody></table>
+      </div>`;
+    document.getElementById('btn-dl-gastos').style.display='';
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+// ══════════════════════════════════════════════
+//  EXCEL
+// ══════════════════════════════════════════════
+function xlsxExport(data, sheetName, filename){
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  const cols=data[0].map((_,ci)=>({wch:Math.max(...data.map(row=>String(row[ci]||'').length))+2}));
+  ws['!cols']=cols;
+  XLSX.utils.book_append_sheet(wb,ws,sheetName);
+  XLSX.writeFile(wb,filename);
+}
+
+function dlReparto(){
+  if(!_repartoRows.length){alert('Calcula el reparto primero');return;}
+  const d=[['MATRICULA','OBRA','DIAS EFECTIVOS','KM APROXIMADOS','% REPARTO']];
+  _repartoRows.forEach(r=>d.push([r.matricula,r.obra,parseFloat(r.dias.toFixed(2)),Math.round(r.km),parseFloat(r.pct.toFixed(1))]));
+  xlsxExport(d,'Reparto',`reparto_${document.getElementById('r-desde').value}_${document.getElementById('r-hasta').value}.xlsx`);
+}
+
+function dlGastos(){
+  if(!_gastosRows.length){alert('Calcula los gastos primero');return;}
+  const d=[['OBRA','MATRICULA','TOTAL HORAS','COSTE HORAS (33€/h)','MATERIAL','REP. EXTERNA','ITV','TOTAL']];
+  _gastosRows.forEach(r=>{
+    const tot=r.costeH+r.material+r.externa+r.itv;
+    d.push([r.obra,r.matricula,parseFloat(r.horas.toFixed(1)),parseFloat(r.costeH.toFixed(2)),parseFloat(r.material.toFixed(2)),parseFloat(r.externa.toFixed(2)),parseFloat(r.itv.toFixed(2)),parseFloat(tot.toFixed(2))]);
+  });
+  const tH=_gastosRows.reduce((s,r)=>s+r.horas,0),tCH=_gastosRows.reduce((s,r)=>s+r.costeH,0);
+  const tM=_gastosRows.reduce((s,r)=>s+r.material,0),tE=_gastosRows.reduce((s,r)=>s+r.externa,0),tI=_gastosRows.reduce((s,r)=>s+r.itv,0);
+  d.push(['TOTAL','',parseFloat(tH.toFixed(1)),parseFloat(tCH.toFixed(2)),parseFloat(tM.toFixed(2)),parseFloat(tE.toFixed(2)),parseFloat(tI.toFixed(2)),parseFloat((tCH+tM+tE+tI).toFixed(2))]);
+  xlsxExport(d,'Gastos',`gastos_${document.getElementById('g-desde').value}_${document.getElementById('g-hasta').value}.xlsx`);
+}
+
+// ══════════════════════════════════════════════
+//  START
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
