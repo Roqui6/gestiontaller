@@ -167,6 +167,20 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
 .rbar-wrap{display:flex;height:7px;border-radius:4px;overflow:hidden;width:100px;background:var(--surface3);}
 .rbar{height:100%;}
 
+/* CALENDARIO */
+.cal-day-name{text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:4px 0;text-transform:uppercase;}
+.cal-day{border-radius:8px;padding:6px 4px;cursor:pointer;text-align:center;font-size:12px;border:1px solid transparent;transition:all 0.15s;min-height:52px;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.cal-day:hover{background:var(--surface2);border-color:var(--border);}
+.cal-day.hoy{border-color:var(--accent)!important;background:var(--accent-glow);}
+.cal-day.seleccionado{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff;}
+.cal-day.seleccionado .cal-day-num{color:#fff;}
+.cal-day.tiene-rutas{background:var(--surface2);}
+.cal-day.vacio{cursor:default;opacity:0.2;}
+.cal-day-num{font-weight:600;font-size:13px;color:var(--text);}
+.cal-dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;}
+.cal-dot{width:5px;height:5px;border-radius:50%;}
+.cal-fija-badge{font-size:9px;color:var(--yellow);font-weight:600;}
+
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:var(--surface);}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
@@ -313,15 +327,23 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:var(--surface2);}
       <div class="section-hr">
         <div class="sh"><h1>🚛 Diario de Rutas</h1><p>Planificación y seguimiento diario</p></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-secondary" onclick="cargarRutasFijas()">📋 Cargar rutas fijas</button>
+          <button class="btn btn-secondary" onclick="cargarRutasFijas()">📋 Cargar rutas fijas del día</button>
           <button class="btn btn-primary" onclick="openRutaModal()">+ Añadir ruta / extra</button>
         </div>
       </div>
       <div id="pend-banner"></div>
-      <div class="filters">
-        <input class="fi" id="rf-fecha" type="date" onchange="renderRutas()" style="width:150px" />
-        <select class="fi" id="rf-obra" onchange="renderRutas()" style="width:170px"><option value="">Todas las obras</option></select>
-        <select class="fi" id="rf-mat" onchange="renderRutas()" style="width:150px"><option value="">Todas las matrículas</option></select>
+      <!-- CALENDARIO -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <button class="btn btn-secondary btn-sm" onclick="cambiarMes(-1)">← Anterior</button>
+          <div style="font-size:16px;font-weight:700;letter-spacing:-0.3px" id="cal-titulo">—</div>
+          <button class="btn btn-secondary btn-sm" onclick="cambiarMes(1)">Siguiente →</button>
+        </div>
+        <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
+      </div>
+      <!-- DIA SELECCIONADO -->
+      <div id="dia-header" style="display:none;margin-bottom:12px;">
+        <div style="font-size:15px;font-weight:600;" id="dia-titulo">—</div>
       </div>
       <div id="rutas-cards"></div>
     </div>
@@ -620,7 +642,7 @@ async function launchModule(mod, user){
   populateSel();
   if(mod==='gestor'){ renderUsers(); renderFlota(); renderObras(); renderRutasFijas(); renderAlertas(); }
   if(mod==='taller'){ document.getElementById('tf-mes').value=ym; document.getElementById('t-fecha').value=today; await renderTaller(); }
-  if(mod==='rutas'){ document.getElementById('rf-fecha').value=today; await renderRutas(); }
+  if(mod==='rutas'){ calYear=new Date().getFullYear(); calMonth=new Date().getMonth(); calFechaSelec=today; await renderRutas(); }
   if(mod==='general'){
     document.getElementById('r-desde').value=ym+'-01'; document.getElementById('r-hasta').value=today;
     document.getElementById('g-desde').value=ym+'-01'; document.getElementById('g-hasta').value=today;
@@ -801,7 +823,8 @@ function renderRutasFijas(){
     <td style="font-size:12px">${(r.dias||[]).map(d=>dn[d]).join(', ')}</td>
     <td><span class="badge ${r.activa?'bg-green':'bg-gray'}">${r.activa?'Activa':'Inactiva'}</span></td>
     <td style="white-space:nowrap">
-      <button class="btn btn-secondary btn-sm" onclick="toggleRF('${r.id}',${!r.activa})">${r.activa?'Desactivar':'Activar'}</button>
+      <button class="btn btn-secondary btn-sm" onclick="editRF('${r.id}')">✏️</button>
+      <button class="btn btn-secondary btn-sm" onclick="toggleRF('${r.id}',${!r.activa})" style="margin-left:4px">${r.activa?'Desactivar':'Activar'}</button>
       <button class="btn btn-danger btn-sm" onclick="delRF('${r.id}')" style="margin-left:4px">×</button>
     </td></tr>`).join('');
 }
@@ -820,11 +843,40 @@ async function saveRutaFija(){
   if(document.getElementById('rfj-v').checked) dias.push(5);
   if(document.getElementById('rfj-s').checked) dias.push(6);
   if(!dias.length){alert('Selecciona al menos un día');return;}
+  const eid=document.getElementById('ov-rutafija').dataset.editId||'';
+  const payload={matricula,nombre,obra,km:parseInt(document.getElementById('rfj-km').value)||0,dias,conductor:document.getElementById('rfj-conductor').value.trim()||null};
   try {
-    const r=await POST('rutas_fijas',{matricula,nombre,obra,km:parseInt(document.getElementById('rfj-km').value)||0,dias,conductor:document.getElementById('rfj-conductor').value.trim()||null,activa:true});
-    cache.rutasFijas.push(r[0]); renderRutasFijas(); populateSel(); closeOv('ov-rutafija');
+    if(eid){
+      await PATCH('rutas_fijas',payload,`?id=eq.${eid}`);
+      const idx=cache.rutasFijas.findIndex(r=>r.id===eid);
+      if(idx>=0) cache.rutasFijas[idx]={...cache.rutasFijas[idx],...payload};
+    } else {
+      const r=await POST('rutas_fijas',{...payload,activa:true});
+      cache.rutasFijas.push(r[0]);
+    }
+    document.getElementById('ov-rutafija').dataset.editId='';
+    document.querySelector('#ov-rutafija h3').textContent='Nueva ruta fija';
+    renderRutasFijas(); populateSel(); closeOv('ov-rutafija');
     ['rfj-nombre','rfj-conductor','rfj-km'].forEach(id=>document.getElementById(id).value='');
   } catch(e){ alert('Error: '+e.message); }
+}
+
+function editRF(id){
+  const rf=cache.rutasFijas.find(r=>r.id===id); if(!rf)return;
+  document.getElementById('rfj-mat').value=rf.matricula;
+  document.getElementById('rfj-nombre').value=rf.nombre;
+  document.getElementById('rfj-obra').value=rf.obra;
+  document.getElementById('rfj-km').value=rf.km||'';
+  document.getElementById('rfj-conductor').value=rf.conductor||'';
+  ['d','l','ma','x','j','v','s'].forEach((d,i)=>{
+    const dow=[0,1,2,3,4,5,6][i];
+    document.getElementById('rfj-'+d).checked=(rf.dias||[]).includes(dow);
+  });
+  // Cambiar modal a modo edición
+  document.querySelector('#ov-rutafija h3').textContent='Editar ruta fija';
+  // Guardar id para el save
+  document.getElementById('ov-rutafija').dataset.editId=id;
+  openOv('ov-rutafija');
 }
 
 async function toggleRF(id, activa){
@@ -986,110 +1038,139 @@ async function delTaller(id){
 }
 
 // ══════════════════════════════════════════════
-//  RUTAS DIARIO
+//  RUTAS DIARIO — CALENDARIO
 // ══════════════════════════════════════════════
-function updateRF(){
-  const tipo=document.getElementById('r-tipo').value;
-  const estado=document.getElementById('r-estado').value;
-  const sust=document.getElementById('r-sust').value;
-  document.querySelectorAll('.r-ruta').forEach(e=>e.style.display=tipo==='ruta'?'':'none');
-  document.querySelectorAll('.r-extra').forEach(e=>e.style.display=tipo==='extra'?'':'none');
-  const isParcial=estado==='parcial'||estado==='averia';
-  document.querySelectorAll('.r-parcial').forEach(e=>e.style.display=isParcial?'':'none');
-  document.querySelectorAll('.r-sust-pct').forEach(e=>e.style.display=(isParcial&&sust)?'':'none');
+let calYear=new Date().getFullYear();
+let calMonth=new Date().getMonth();
+let calFechaSelec=new Date().toISOString().split('T')[0];
+let calRutasMes={}; // { 'YYYY-MM-DD': [rutas] }
+
+function cambiarMes(delta){
+  calMonth+=delta;
+  if(calMonth>11){calMonth=0;calYear++;}
+  if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendario();
 }
 
-function openRutaModal(){
-  document.getElementById('or-title').textContent='Nueva ruta / trabajo extra';
-  document.getElementById('r-id').value='';
-  document.getElementById('r-fecha').value=document.getElementById('rf-fecha').value||new Date().toISOString().split('T')[0];
-  document.getElementById('r-tipo').value='ruta';
-  document.getElementById('r-mat').value='';document.getElementById('r-conductor').value='';
-  document.getElementById('r-rutafija').value='';document.getElementById('r-nombre').value='';
-  document.getElementById('r-obra').value='';document.getElementById('r-km-prev').value='';
-  document.getElementById('r-extradesc').value='';document.getElementById('r-notas').value='';
-  document.getElementById('r-estado').value='planificada';document.getElementById('r-pct').value='';
-  document.getElementById('r-km-real').value='';document.getElementById('r-sust').value='';document.getElementById('r-sustpct').value='';
-  updateRF(); openOv('ov-ruta');
+async function renderCalendario(){
+  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('cal-titulo').textContent=meses[calMonth]+' '+calYear;
+
+  // Cargar todas las rutas del mes
+  const desde=`${calYear}-${String(calMonth+1).padStart(2,'0')}-01`;
+  const hasta=`${calYear}-${String(calMonth+1).padStart(2,'0')}-31`;
+  try {
+    const data=await GET('rutas',`?fecha=gte.${desde}&fecha=lte.${hasta}&select=fecha,estado,tipo`);
+    calRutasMes={};
+    (data||[]).forEach(r=>{ if(!calRutasMes[r.fecha]) calRutasMes[r.fecha]=[]; calRutasMes[r.fecha].push(r); });
+  } catch(e){ calRutasMes={}; }
+
+  // Calcular días del mes
+  const primerDia=new Date(calYear,calMonth,1).getDay(); // 0=dom
+  const diasMes=new Date(calYear,calMonth+1,0).getDate();
+  const hoy=new Date().toISOString().split('T')[0];
+
+  // Días de la semana activos en rutas fijas
+  const diasConFijas=new Set();
+  cache.rutasFijas.filter(r=>r.activa).forEach(r=>(r.dias||[]).forEach(d=>diasConFijas.add(d)));
+
+  const grid=document.getElementById('cal-grid');
+  const diasNombre=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+  let html=diasNombre.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+
+  // Espacios vacíos al inicio
+  for(let i=0;i<primerDia;i++) html+=`<div class="cal-day vacio"></div>`;
+
+  for(let d=1;d<=diasMes;d++){
+    const fecha=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow=new Date(fecha+'T12:00:00').getDay();
+    const rutas=calRutasMes[fecha]||[];
+    const tieneFija=diasConFijas.has(dow);
+    const esHoy=fecha===hoy;
+    const esSel=fecha===calFechaSelec;
+
+    let clases='cal-day';
+    if(esHoy) clases+=' hoy';
+    if(esSel) clases+=' seleccionado';
+    else if(rutas.length>0) clases+=' tiene-rutas';
+
+    // Dots por estado
+    const colores={completada:'#22c55e',planificada:'#3b82f6',parcial:'#f59e0b',averia:'#ef4444',extra:'#a855f7'};
+    const dots=rutas.slice(0,5).map(r=>`<div class="cal-dot" style="background:${colores[r.estado]||colores[r.tipo]||'#64748b'}"></div>`).join('');
+
+    html+=`<div class="${clases}" onclick="seleccionarDia('${fecha}')">
+      <div class="cal-day-num">${d}</div>
+      ${rutas.length?`<div class="cal-dots">${dots}</div>`:''}
+      ${tieneFija&&!esSel?`<div class="cal-fija-badge">★</div>`:''}
+    </div>`;
+  }
+  grid.innerHTML=html;
+  renderRutasDia();
 }
 
-function preloadRF(){
-  const id=document.getElementById('r-rutafija').value;
-  if(!id)return;
-  const rf=cache.rutasFijas.find(r=>r.id===id);if(!rf)return;
-  document.getElementById('r-mat').value=rf.matricula;
-  document.getElementById('r-nombre').value=rf.nombre;
-  document.getElementById('r-obra').value=rf.obra;
-  document.getElementById('r-km-prev').value=rf.km||'';
-  if(rf.conductor) document.getElementById('r-conductor').value=rf.conductor;
+function seleccionarDia(fecha){
+  calFechaSelec=fecha;
+  // Redibujar solo los días del calendario sin recargar datos
+  document.querySelectorAll('.cal-day:not(.vacio)').forEach(el=>{
+    el.classList.remove('seleccionado','hoy');
+  });
+  const hoy=new Date().toISOString().split('T')[0];
+  // Re-render completo para actualizar clases
+  const grid=document.getElementById('cal-grid');
+  const diasNombre=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const primerDia=new Date(calYear,calMonth,1).getDay();
+  const diasMes=new Date(calYear,calMonth+1,0).getDate();
+  const diasConFijas=new Set();
+  cache.rutasFijas.filter(r=>r.activa).forEach(r=>(r.dias||[]).forEach(d=>diasConFijas.add(d)));
+  const colores={completada:'#22c55e',planificada:'#3b82f6',parcial:'#f59e0b',averia:'#ef4444',extra:'#a855f7'};
+
+  let html=diasNombre.map(d=>`<div class="cal-day-name">${d}</div>`).join('');
+  for(let i=0;i<primerDia;i++) html+=`<div class="cal-day vacio"></div>`;
+  for(let d=1;d<=diasMes;d++){
+    const f=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow=new Date(f+'T12:00:00').getDay();
+    const rutas=calRutasMes[f]||[];
+    const tieneFija=diasConFijas.has(dow);
+    let clases='cal-day';
+    if(f===hoy) clases+=' hoy';
+    if(f===fecha) clases+=' seleccionado';
+    else if(rutas.length>0) clases+=' tiene-rutas';
+    const dots=rutas.slice(0,5).map(r=>`<div class="cal-dot" style="background:${colores[r.estado]||colores[r.tipo]||'#64748b'}"></div>`).join('');
+    html+=`<div class="${clases}" onclick="seleccionarDia('${f}')">
+      <div class="cal-day-num">${d}</div>
+      ${rutas.length?`<div class="cal-dots">${dots}</div>`:''}
+      ${tieneFija&&f!==fecha?`<div class="cal-fija-badge">★</div>`:''}
+    </div>`;
+  }
+  grid.innerHTML=html;
+  renderRutasDia();
 }
 
-async function cargarRutasFijas(){
-  const fecha=document.getElementById('rf-fecha').value||new Date().toISOString().split('T')[0];
+async function renderRutasDia(){
+  const fecha=calFechaSelec;
+  const dh=document.getElementById('dia-header');
+  const dt=document.getElementById('dia-titulo');
+  dh.style.display='block';
+  const diasN=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
   const dow=new Date(fecha+'T12:00:00').getDay();
-  const activas=cache.rutasFijas.filter(r=>r.activa&&(r.dias||[]).includes(dow));
-  if(!activas.length){alert('No hay rutas fijas para ese día de la semana');return;}
-  // Ver cuáles ya existen
-  const existing=await GET('rutas',`?fecha=eq.${fecha}&select=ruta_fija_id`);
-  const existIds=new Set((existing||[]).map(r=>r.ruta_fija_id).filter(Boolean));
-  const nuevas=activas.filter(rf=>!existIds.has(rf.id));
-  if(!nuevas.length){alert('Las rutas fijas de ese día ya estaban cargadas');return;}
-  const inserts=nuevas.map(rf=>({fecha,matricula:rf.matricula,conductor:rf.conductor||'',obra:rf.obra,tipo:'ruta',nombre:rf.nombre,ruta_fija_id:rf.id,km_prev:rf.km||0,km_real:0,estado:'planificada',usuario:cu?cu.nombre:'—'}));
-  try {
-    await POST('rutas',inserts);
-    await renderRutas();
-    alert(`Se han cargado ${inserts.length} ruta(s) para el ${fd(fecha)}`);
-  } catch(e){ alert('Error: '+e.message); }
-}
+  dt.innerHTML=`📅 ${diasN[dow].charAt(0).toUpperCase()+diasN[dow].slice(1)}, ${fd(fecha)}`;
 
-async function saveRuta(){
-  const fecha=document.getElementById('r-fecha').value;
-  const mat=document.getElementById('r-mat').value;
-  const conductor=document.getElementById('r-conductor').value.trim();
-  const obra=document.getElementById('r-obra').value;
-  if(!fecha||!mat||!conductor||!obra){alert('Fecha, matrícula, conductor y obra son obligatorios');return;}
-  const tipo=document.getElementById('r-tipo').value;
-  const estado=document.getElementById('r-estado').value;
-  let pct=null;
-  if(estado==='completada') pct=100;
-  else if(estado==='parcial'||estado==='averia') pct=parseInt(document.getElementById('r-pct').value)||null;
-  const sust=document.getElementById('r-sust').value||null;
-  const sustPct=sust?parseInt(document.getElementById('r-sustpct').value)||null:null;
-  const payload={fecha,matricula:mat,conductor,obra,tipo,
-    nombre:tipo==='ruta'?document.getElementById('r-nombre').value.trim():null,
-    ruta_fija_id:document.getElementById('r-rutafija').value||null,
-    km_prev:parseInt(document.getElementById('r-km-prev').value)||0,
-    km_real:parseInt(document.getElementById('r-km-real').value)||0,
-    extradesc:document.getElementById('r-extradesc').value.trim()||null,
-    notas:document.getElementById('r-notas').value.trim()||null,
-    estado,pct,sust,sust_pct:sustPct,
-    usuario:cu?cu.nombre:'—'};
-  const eid=document.getElementById('r-id').value;
-  try {
-    if(eid){ await PATCH('rutas',payload,`?id=eq.${eid}`); }
-    else { await POST('rutas',payload); }
-    closeOv('ov-ruta'); await renderRutas();
-  } catch(e){ alert('Error: '+e.message); }
-}
-
-async function renderRutas(){
-  const fecha=document.getElementById('rf-fecha').value;
-  const fo=document.getElementById('rf-obra').value;
-  const fmat=document.getElementById('rf-mat').value;
-  let q='?select=*&order=matricula';
-  if(fecha) q+=`&fecha=eq.${fecha}`;
-  if(fo) q+=`&obra=eq.${encodeURIComponent(fo)}`;
-  if(fmat) q+=`&matricula=eq.${encodeURIComponent(fmat)}`;
   const c=document.getElementById('rutas-cards');
-  c.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">Cargando...</div>';
+  c.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3)">Cargando...</div>';
   try {
-    const data=await GET('rutas',q);
-    // Pendientes banner (global, sin filtro)
+    const data=await GET('rutas',`?fecha=eq.${fecha}&select=*&order=matricula`);
+
+    // Banner pendientes
     const hace3=new Date(); hace3.setDate(hace3.getDate()-3);
     const pend=(data||[]).filter(r=>r.estado==='planificada'&&new Date(r.fecha)<hace3);
     document.getElementById('pend-banner').innerHTML=pend.length?
-      `<div class="alert alert-w">⚠️ <strong>${pend.length} ruta(s)</strong> llevan más de 3 días planificadas sin cerrar.</div>`:'';
-    if(!data||!data.length){c.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3)">Sin rutas para este día.<br><small>Carga las rutas fijas o añade una nueva.</small></div>';return;}
+      `<div class="alert alert-w">⚠️ <strong>${pend.length} ruta(s)</strong> llevan más de 3 días sin cerrar.</div>`:'';
+
+    if(!data||!data.length){
+      c.innerHTML=`<div style="text-align:center;padding:32px;color:var(--text3)">Sin rutas para este día.<br><small style="margin-top:6px;display:block">Carga las rutas fijas o añade una nueva.</small></div>`;
+      return;
+    }
     const eb={completada:'bg-green',planificada:'bg-blue',parcial:'bg-yellow',averia:'bg-red'};
     const el={completada:'✅ Completada',planificada:'📋 Planificada',parcial:'⚠️ Parcial',averia:'🔴 Avería'};
     const cc={completada:'ok',planificada:'',parcial:'incompleta',averia:'averia'};
@@ -1120,7 +1201,107 @@ async function renderRutas(){
         ${r.notas?`<div style="padding:8px 16px 12px;font-size:12px;color:var(--text3);border-top:1px solid var(--border)">📝 ${r.notas}</div>`:''}
       </div>`;
     }).join('');
-  } catch(e){ c.innerHTML=`<div class="alert alert-d">Error al cargar rutas: ${e.message}</div>`; }
+  } catch(e){ c.innerHTML=`<div class="alert alert-d">Error: ${e.message}</div>`; }
+}
+
+// Actualizar calRutasMes tras guardar/borrar ruta
+async function refreshCalMes(){
+  const desde=`${calYear}-${String(calMonth+1).padStart(2,'0')}-01`;
+  const hasta=`${calYear}-${String(calMonth+1).padStart(2,'0')}-31`;
+  try {
+    const data=await GET('rutas',`?fecha=gte.${desde}&fecha=lte.${hasta}&select=fecha,estado,tipo`);
+    calRutasMes={};
+    (data||[]).forEach(r=>{ if(!calRutasMes[r.fecha]) calRutasMes[r.fecha]=[]; calRutasMes[r.fecha].push(r); });
+  } catch(e){}
+  seleccionarDia(calFechaSelec);
+}
+
+function updateRF(){
+  const tipo=document.getElementById('r-tipo').value;
+  const estado=document.getElementById('r-estado').value;
+  const sust=document.getElementById('r-sust').value;
+  document.querySelectorAll('.r-ruta').forEach(e=>e.style.display=tipo==='ruta'?'':'none');
+  document.querySelectorAll('.r-extra').forEach(e=>e.style.display=tipo==='extra'?'':'none');
+  const isParcial=estado==='parcial'||estado==='averia';
+  document.querySelectorAll('.r-parcial').forEach(e=>e.style.display=isParcial?'':'none');
+  document.querySelectorAll('.r-sust-pct').forEach(e=>e.style.display=(isParcial&&sust)?'':'none');
+}
+
+function openRutaModal(){
+  document.getElementById('or-title').textContent='Nueva ruta / trabajo extra';
+  document.getElementById('r-id').value='';
+  document.getElementById('r-fecha').value=calFechaSelec;
+  document.getElementById('r-tipo').value='ruta';
+  document.getElementById('r-mat').value='';document.getElementById('r-conductor').value='';
+  document.getElementById('r-rutafija').value='';document.getElementById('r-nombre').value='';
+  document.getElementById('r-obra').value='';document.getElementById('r-km-prev').value='';
+  document.getElementById('r-extradesc').value='';document.getElementById('r-notas').value='';
+  document.getElementById('r-estado').value='planificada';document.getElementById('r-pct').value='';
+  document.getElementById('r-km-real').value='';document.getElementById('r-sust').value='';document.getElementById('r-sustpct').value='';
+  updateRF(); openOv('ov-ruta');
+}
+
+function preloadRF(){
+  const id=document.getElementById('r-rutafija').value;
+  if(!id)return;
+  const rf=cache.rutasFijas.find(r=>r.id===id);if(!rf)return;
+  document.getElementById('r-mat').value=rf.matricula;
+  document.getElementById('r-nombre').value=rf.nombre;
+  document.getElementById('r-obra').value=rf.obra;
+  document.getElementById('r-km-prev').value=rf.km||'';
+  if(rf.conductor) document.getElementById('r-conductor').value=rf.conductor;
+}
+
+async function cargarRutasFijas(){
+  const fecha=calFechaSelec;
+  const dow=new Date(fecha+'T12:00:00').getDay();
+  const activas=cache.rutasFijas.filter(r=>r.activa&&(r.dias||[]).includes(dow));
+  if(!activas.length){alert('No hay rutas fijas para ese día de la semana');return;}
+  const existing=await GET('rutas',`?fecha=eq.${fecha}&select=ruta_fija_id`);
+  const existIds=new Set((existing||[]).map(r=>r.ruta_fija_id).filter(Boolean));
+  const nuevas=activas.filter(rf=>!existIds.has(rf.id));
+  if(!nuevas.length){alert('Las rutas fijas de ese día ya estaban cargadas');return;}
+  const inserts=nuevas.map(rf=>({fecha,matricula:rf.matricula,conductor:rf.conductor||'',obra:rf.obra,tipo:'ruta',nombre:rf.nombre,ruta_fija_id:rf.id,km_prev:rf.km||0,km_real:0,estado:'planificada',usuario:cu?cu.nombre:'—'}));
+  try {
+    await POST('rutas',inserts);
+    await refreshCalMes();
+    alert(`Se han cargado ${inserts.length} ruta(s) para el ${fd(fecha)}`);
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+async function saveRuta(){
+  const fecha=document.getElementById('r-fecha').value;
+  const mat=document.getElementById('r-mat').value;
+  const conductor=document.getElementById('r-conductor').value.trim();
+  const obra=document.getElementById('r-obra').value;
+  if(!fecha||!mat||!conductor||!obra){alert('Fecha, matrícula, conductor y obra son obligatorios');return;}
+  const tipo=document.getElementById('r-tipo').value;
+  const estado=document.getElementById('r-estado').value;
+  let pct=null;
+  if(estado==='completada') pct=100;
+  else if(estado==='parcial'||estado==='averia') pct=parseInt(document.getElementById('r-pct').value)||null;
+  const sust=document.getElementById('r-sust').value||null;
+  const sustPct=sust?parseInt(document.getElementById('r-sustpct').value)||null:null;
+  const payload={fecha,matricula:mat,conductor,obra,tipo,
+    nombre:tipo==='ruta'?document.getElementById('r-nombre').value.trim():null,
+    ruta_fija_id:document.getElementById('r-rutafija').value||null,
+    km_prev:parseInt(document.getElementById('r-km-prev').value)||0,
+    km_real:parseInt(document.getElementById('r-km-real').value)||0,
+    extradesc:document.getElementById('r-extradesc').value.trim()||null,
+    notas:document.getElementById('r-notas').value.trim()||null,
+    estado,pct,sust,sust_pct:sustPct,
+    usuario:cu?cu.nombre:'—'};
+  const eid=document.getElementById('r-id').value;
+  try {
+    if(eid){ await PATCH('rutas',payload,`?id=eq.${eid}`); }
+    else { await POST('rutas',payload); }
+    closeOv('ov-ruta');
+    await refreshCalMes();
+  } catch(e){ alert('Error: '+e.message); }
+}
+
+async function renderRutas(){
+  await renderCalendario();
 }
 
 async function editRuta(id){
@@ -1150,7 +1331,7 @@ async function editRuta(id){
 
 async function delRuta(id){
   if(!confirm('¿Eliminar ruta?'))return;
-  try { await DEL('rutas',`?id=eq.${id}`); await renderRutas(); }
+  try { await DEL('rutas',`?id=eq.${id}`); await refreshCalMes(); }
   catch(e){ alert('Error: '+e.message); }
 }
 
